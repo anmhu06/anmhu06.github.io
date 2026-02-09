@@ -36,7 +36,6 @@ h1, h2 {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ---- ORIGINAL BUTTON STYLING ---- */
 .options button {
     display: block;
     margin: 8px 0;
@@ -76,6 +75,12 @@ h1, h2 {
     font-size: 16px;
     cursor: pointer;
 }
+
+.element-pic {
+    width: 150px;
+    display: block;
+    margin: 10px auto;
+}
 </style>
 </head>
 
@@ -94,8 +99,18 @@ h1, h2 {
 
 <script>
 
-// ----- COLORS -----
+// ---- IMAGE PATHS ----
+const elementImages = {
+    Pyro: "genshin_quiz_images/Pyro.png",
+    Hydro: "genshin_quiz_images/Hydro.png",
+    Cryo: "genshin_quiz_images/Cryo.png",
+    Anemo: "genshin_quiz_images/Anemo.png",
+    Geo: "genshin_quiz_images/Geo.png",
+    Electro: "genshin_quiz_images/Electro.png",
+    Dendro: "genshin_quiz_images/Dendro.png"
+};
 
+// ---- COLORS ----
 const elementColors = {
     Pyro: "rgba(255, 150, 150, 0.9)",
     Hydro: "rgba(140, 190, 255, 0.9)",
@@ -124,8 +139,7 @@ function darkenColor(rgba) {
     return `rgb(${r}, ${g}, ${b})`;
 }
 
-// ----- FULL QUESTION LIST -----
-
+// ---- FULL QUESTION LIST (ALL 9) ----
 const questions = [
 
 {
@@ -247,8 +261,6 @@ answers: [
 
 ];
 
-// ----- QUIZ LOGIC -----
-
 let currentQuestion = 0;
 
 let scores = {
@@ -256,11 +268,8 @@ Pyro: 0, Hydro: 0, Anemo: 0,
 Electro: 0, Geo: 0, Cryo: 0, Dendro: 0
 };
 
-let userChoices = [];
-
 function updateProgress() {
-const bar = document.getElementById("progress-bar");
-bar.style.width =
+document.getElementById("progress-bar").style.width =
 ((currentQuestion / questions.length) * 100) + "%";
 }
 
@@ -296,13 +305,6 @@ btn.textContent = answer.text;
 
 btn.onclick = () => {
 answer.element.forEach(el => scores[el]++);
-
-userChoices.push({
-question: q.text,
-choice: answer.text,
-element: answer.element.join(", ")
-});
-
 currentQuestion++;
 loadQuestion();
 };
@@ -315,12 +317,10 @@ quizDiv.appendChild(qDiv);
 }
 
 function launchConfetti() {
-const end = Date.now() + 2500;
-
+const end = Date.now() + 2000;
 (function frame() {
-confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 } });
-confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 } });
-
+confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
+confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
 if (Date.now() < end) requestAnimationFrame(frame);
 })();
 }
@@ -331,24 +331,19 @@ const resultDiv = document.getElementById("result");
 const topElement = Object.keys(scores)
 .reduce((a, b) => scores[a] > scores[b] ? a : b);
 
-resultDiv.style.backgroundColor =
-elementColors[topElement];
+resultDiv.style.backgroundColor = elementColors[topElement];
 
-let headingColor =
-darkenColor(elementColors[topElement]);
+let headingColor = darkenColor(elementColors[topElement]);
 
 resultDiv.innerHTML = `
+
+<img class="element-pic" src="${elementImages[topElement]}" alt="${topElement}">
+
 <h2 style="color:${headingColor}">
 You are aligned with the ${topElement} element!
 </h2>
 
-<h3>Your Choices:</h3>
-
-${userChoices.map(c =>
-`<p><b>${c.question}</b> → ${c.choice} (${c.element})</p>`
-).join("")}
-
-<h3>Breakdown:</h3>
+<h3>Element Breakdown:</h3>
 
 ${Object.entries(scores).map(([el, sc]) =>
 `<p style="color:${solidColors[el]}">${el}: ${sc}</p>`
@@ -362,13 +357,7 @@ launchConfetti();
 
 function restartQuiz() {
 currentQuestion = 0;
-
-scores = {
-Pyro: 0, Hydro: 0, Anemo: 0,
-Electro: 0, Geo: 0, Cryo: 0, Dendro: 0
-};
-
-userChoices = [];
+scores = { Pyro:0, Hydro:0, Anemo:0, Electro:0, Geo:0, Cryo:0, Dendro:0 };
 loadQuestion();
 }
 
