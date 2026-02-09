@@ -5,11 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Which Genshin Element Are You?</title>
 
-<style>
-* {
-    box-sizing: border-box;
-}
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
+<style>
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f3ff;
@@ -19,53 +17,23 @@ body {
 
 .container {
     max-width: 800px;
-    margin: 10px auto;
+    margin: 0 auto;
     background: white;
     padding: 15px;
-    border-radius: 10px;
 }
 
 h1, h2 {
     text-align: center;
 }
 
-/* Progress Bar */
-#progress-container {
-    width: 100%;
-    background: #ddd;
-    border-radius: 10px;
-    height: 14px;
-    margin-bottom: 15px;
+.question {
+    margin-bottom: 20px;
+    animation: fadeIn 0.4s ease-in-out;
 }
 
-#progress-bar {
-    height: 14px;
-    width: 0%;
-    background: #6a8dff;
-    border-radius: 10px;
-    transition: width 0.5s ease;
-}
-
-#progress-text {
-    text-align: center;
-    margin: 5px 0 15px 0;
-    font-size: 14px;
-    color: #555;
-}
-
-/* Animations */
-#quiz {
-    transition: opacity 0.4s ease, transform 0.4s ease;
-}
-
-.fade-out {
-    opacity: 0;
-    transform: translateY(10px);
-}
-
-.fade-in {
-    opacity: 1;
-    transform: translateY(0px);
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .options button {
@@ -75,14 +43,6 @@ h1, h2 {
     width: 100%;
     font-size: 18px;
     cursor: pointer;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    transition: transform 0.2s ease, background-color 0.2s ease;
-}
-
-.options button:hover {
-    background-color: #f0f0f0;
-    transform: scale(1.02);
 }
 
 #result {
@@ -92,12 +52,21 @@ h1, h2 {
     padding: 20px;
     border-radius: 10px;
     color: black;
+    animation: fadeIn 0.6s ease-in-out;
 }
 
-.divider {
-    border: none;
-    border-top: 2px solid rgba(0,0,0,0.2);
-    margin: 15px 0;
+#progress-container {
+    width: 100%;
+    background: #ddd;
+    height: 10px;
+    margin-bottom: 10px;
+}
+
+#progress-bar {
+    height: 10px;
+    background: #6c8cff;
+    width: 0%;
+    transition: width 0.4s;
 }
 
 #restart {
@@ -105,13 +74,6 @@ h1, h2 {
     padding: 12px;
     font-size: 16px;
     cursor: pointer;
-    border-radius: 8px;
-}
-
-.element-pic {
-    width: 120px;
-    margin: 10px auto;
-    display: block;
 }
 </style>
 </head>
@@ -125,29 +87,14 @@ h1, h2 {
         <div id="progress-bar"></div>
     </div>
 
-    <div id="progress-text"></div>
-
     <div id="quiz"></div>
     <div id="result"></div>
 </div>
 
-<!-- Confetti Library -->
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-
 <script>
 
-// ----- IMAGE PATHS -----
-const elementImages = {
-    Pyro: "genshin_quiz_images/Pyro.png",
-    Hydro: "genshin_quiz_images/Hydro.png",
-    Cryo: "genshin_quiz_images/Cryo.png",
-    Anemo: "genshin_quiz_images/Anemo.png",
-    Geo: "genshin_quiz_images/Geo.png",
-    Electro: "genshin_quiz_images/Electro.png",
-    Dendro: "genshin_quiz_images/Dendro.png"
-};
-
 // ----- COLORS -----
+
 const elementColors = {
     Pyro: "rgba(255, 150, 150, 0.9)",
     Hydro: "rgba(140, 190, 255, 0.9)",
@@ -176,215 +123,263 @@ function darkenColor(rgba) {
     return `rgb(${r}, ${g}, ${b})`;
 }
 
-// 🎉 CONFETTI FUNCTION
-function launchConfetti() {
-    const duration = 2.5 * 1000;
-    const end = Date.now() + duration;
+// ----- FULL QUESTION LIST -----
 
-    (function frame() {
-        confetti({
-            particleCount: 5,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0 }
-        });
+const questions = [
 
-        confetti({
-            particleCount: 5,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1 }
-        });
+{
+text: "Pick a fruit:",
+answers: [
+{ text: "Strawberries", element: ["Pyro", "Dendro"] },
+{ text: "Lemon", element: ["Geo"] },
+{ text: "Apples", element: ["Anemo"] },
+{ text: "Blueberry", element: ["Electro", "Hydro"] },
+{ text: "Oranges", element: ["Dendro"] },
+{ text: "Peaches", element: ["Cryo", "Pyro"] },
+{ text: "Mango", element: ["Hydro", "Geo"] }
+]
+},
 
-        if (Date.now() < end) {
-            requestAnimationFrame(frame);
-        }
-    })();
+{
+text: "Choose a personality trait:",
+answers: [
+{ text: "Bold and passionate", element: ["Pyro"] },
+{ text: "Calm and adaptable", element: ["Hydro"] },
+{ text: "Free-spirited", element: ["Anemo"] },
+{ text: "Analytical", element: ["Electro"] },
+{ text: "Reliable and grounded", element: ["Geo"] },
+{ text: "Kind and nurturing", element: ["Dendro"] },
+{ text: "Quiet and reserved", element: ["Cryo"] }
+]
+},
+
+{
+text: "Choose a dessert:",
+answers: [
+{ text: "Chocolate cake", element: ["Pyro"] },
+{ text: "Ice cream", element: ["Cryo"] },
+{ text: "Fruit tart", element: ["Dendro"] },
+{ text: "Waffles", element: ["Anemo"] },
+{ text: "Cheesecake", element: ["Geo"] },
+{ text: "Tiramisu", element: ["Hydro"] },
+{ text: "Carrot cake", element: ["Electro"] }
+]
+},
+
+{
+text: "Favorite elemental reaction?",
+answers: [
+{ text: "Overload", element: ["Pyro", "Electro"] },
+{ text: "Freeze", element: ["Cryo", "Hydro"] },
+{ text: "Bloom", element: ["Dendro"] },
+{ text: "Swirl", element: ["Anemo"] },
+{ text: "Crystallize", element: ["Geo"] },
+{ text: "Electro-Charged", element: ["Electro"] },
+{ text: "Vaporize", element: ["Hydro"] }
+]
+},
+
+{
+text: "Favorite boba flavor?",
+answers: [
+{ text: "Classic milk tea", element: ["Geo"] },
+{ text: "Taro", element: ["Electro"] },
+{ text: "Matcha", element: ["Dendro"] },
+{ text: "Strawberry milk/slush", element: ["Pyro"] },
+{ text: "Mango slush", element: ["Anemo"] },
+{ text: "Lychee tea", element: ["Hydro"] },
+{ text: "Thai Tea", element: ["Cryo"] }
+]
+},
+
+{
+text: "Choose a real-life place:",
+answers: [
+{ text: "Volcano", element: ["Pyro"] },
+{ text: "Rainforest/National Park", element: ["Dendro"] },
+{ text: "Beach", element: ["Hydro"] },
+{ text: "Snowy mountains", element: ["Cryo"] },
+{ text: "Open plains", element: ["Anemo"] },
+{ text: "Caves", element: ["Geo"] },
+{ text: "City at night", element: ["Electro"] }
+]
+},
+
+{
+text: "Pick a meal:",
+answers: [
+{ text: "Pho", element: ["Hydro"] },
+{ text: "Ramen", element: ["Pyro"] },
+{ text: "Udon", element: ["Geo"] },
+{ text: "Sushi", element: ["Cryo"] },
+{ text: "Korean BBQ", element: ["Electro"] },
+{ text: "Chinese food", element: ["Dendro"] },
+{ text: "American Breakfast", element: ["Anemo"] }
+]
+},
+
+{
+text: "Preferred combat type?",
+answers: [
+{ text: "All-out offense", element: ["Pyro"] },
+{ text: "Support and healing", element: ["Hydro"] },
+{ text: "Fast and evasive", element: ["Anemo"] },
+{ text: "Strategic control", element: ["Electro"] },
+{ text: "Defense and shields", element: ["Geo"] },
+{ text: "Steady and calculated", element: ["Cryo"] },
+{ text: "Tactical setups", element: ["Dendro"] }
+]
+},
+
+{
+text: "Pick a word that resonates with you:",
+answers: [
+{ text: "Passion", element: ["Pyro"] },
+{ text: "Freedom", element: ["Anemo"] },
+{ text: "Growth", element: ["Dendro"] },
+{ text: "Calm", element: ["Hydro"] },
+{ text: "Power", element: ["Electro"] },
+{ text: "Stability", element: ["Geo"] },
+{ text: "Stillness", element: ["Cryo"] }
+]
 }
 
-// ----- QUESTIONS -----
-const questions = [
-    {
-        text: "Pick a fruit:",
-        answers: [
-            { text: "Strawberries", element: ["Pyro", "Dendro"] },
-            { text: "Lemon", element: ["Geo"] },
-            { text: "Apples", element: ["Anemo"] },
-            { text: "Blueberry", element: ["Electro", "Hydro"] },
-            { text: "Oranges", element: ["Dendro"] },
-            { text: "Peaches", element: ["Cryo", "Pyro"] },
-            { text: "Mango", element: ["Hydro", "Geo"] }
-        ]
-    },
-    {
-        text: "Choose a personality trait:",
-        answers: [
-            { text: "Bold and passionate", element: ["Pyro"] },
-            { text: "Calm and adaptable", element: ["Hydro"] },
-            { text: "Free-spirited", element: ["Anemo"] },
-            { text: "Analytical", element: ["Electro"] },
-            { text: "Reliable and grounded", element: ["Geo"] },
-            { text: "Kind and nurturing", element: ["Dendro"] },
-            { text: "Quiet and reserved", element: ["Cryo"] }
-        ]
-    },
-    {
-        text: "Choose a dessert:",
-        answers: [
-            { text: "Chocolate cake", element: ["Pyro"] },
-            { text: "Ice cream", element: ["Cryo"] },
-            { text: "Fruit tart", element: ["Dendro"] },
-            { text: "Waffles", element: ["Anemo"] },
-            { text: "Cheesecake", element: ["Geo"] },
-            { text: "Tiramisu", element: ["Hydro"] },
-            { text: "Carrot cake", element: ["Electro"] }
-        ]
-    }
 ];
+
+// ----- QUIZ LOGIC -----
 
 let currentQuestion = 0;
 
 let scores = {
-    Pyro: 0,
-    Hydro: 0,
-    Anemo: 0,
-    Electro: 0,
-    Geo: 0,
-    Cryo: 0,
-    Dendro: 0
+Pyro: 0, Hydro: 0, Anemo: 0,
+Electro: 0, Geo: 0, Cryo: 0, Dendro: 0
 };
 
 let userChoices = [];
 
 function updateProgress() {
-    let percent = (currentQuestion / questions.length) * 100;
-
-    document.getElementById("progress-bar").style.width = percent + "%";
-
-    document.getElementById("progress-text").textContent =
-        `Question ${currentQuestion + 1} of ${questions.length}`;
+const bar = document.getElementById("progress-bar");
+bar.style.width =
+((currentQuestion / questions.length) * 100) + "%";
 }
 
 function loadQuestion() {
-    const quizDiv = document.getElementById("quiz");
-    const resultDiv = document.getElementById("result");
+const quizDiv = document.getElementById("quiz");
+const resultDiv = document.getElementById("result");
 
-    quizDiv.classList.add("fade-out");
+quizDiv.innerHTML = "";
+resultDiv.innerHTML = "";
 
-    setTimeout(() => {
+updateProgress();
 
-        quizDiv.innerHTML = "";
-        resultDiv.innerHTML = "";
+if (currentQuestion >= questions.length) {
+showResult();
+return;
+}
 
-        if (currentQuestion >= questions.length) {
-            showResult();
-            return;
-        }
+const q = questions[currentQuestion];
 
-        updateProgress();
+const qDiv = document.createElement("div");
+qDiv.className = "question";
 
-        const q = questions[currentQuestion];
+const title = document.createElement("h2");
+title.textContent = q.text;
+qDiv.appendChild(title);
 
-        const title = document.createElement("h2");
-        title.textContent = q.text;
-        quizDiv.appendChild(title);
+q.answers.forEach(answer => {
+const btn = document.createElement("button");
+btn.textContent = answer.text;
 
-        const optionsDiv = document.createElement("div");
-        optionsDiv.className = "options";
+btn.onclick = () => {
+answer.element.forEach(el => scores[el]++);
 
-        q.answers.forEach(answer => {
-            const btn = document.createElement("button");
-            btn.textContent = answer.text;
+userChoices.push({
+question: q.text,
+choice: answer.text,
+element: answer.element.join(", ")
+});
 
-            btn.onclick = () => {
-                answer.element.forEach(el => scores[el]++);
+currentQuestion++;
+loadQuestion();
+};
 
-                userChoices.push({
-                    question: q.text,
-                    choice: answer.text,
-                    element: answer.element.join(", ")
-                });
+qDiv.appendChild(btn);
+});
 
-                currentQuestion++;
-                loadQuestion();
-            };
+quizDiv.appendChild(qDiv);
+}
 
-            optionsDiv.appendChild(btn);
-        });
+function launchConfetti() {
+const end = Date.now() + 2500;
 
-        quizDiv.appendChild(optionsDiv);
+(function frame() {
+confetti({
+particleCount: 6,
+angle: 60,
+spread: 55,
+origin: { x: 0 }
+});
 
-        quizDiv.classList.remove("fade-out");
-        quizDiv.classList.add("fade-in");
+confetti({
+particleCount: 6,
+angle: 120,
+spread: 55,
+origin: { x: 1 }
+});
 
-    }, 350);
+if (Date.now() < end) requestAnimationFrame(frame);
+})();
 }
 
 function showResult() {
-    const resultDiv = document.getElementById("result");
+const resultDiv = document.getElementById("result");
 
-    document.getElementById("progress-container").style.display = "none";
-    document.getElementById("progress-text").style.display = "none";
+const topElement = Object.keys(scores)
+.reduce((a, b) => scores[a] > scores[b] ? a : b);
 
-    const topElement = Object.keys(scores).reduce((a, b) =>
-        scores[a] > scores[b] ? a : b
-    );
+resultDiv.style.backgroundColor =
+elementColors[topElement];
 
-    resultDiv.style.backgroundColor = elementColors[topElement];
+let headingColor =
+darkenColor(elementColors[topElement]);
 
-    let headingColor = darkenColor(elementColors[topElement]);
+resultDiv.innerHTML = `
+<h2 style="color:${headingColor}">
+You are aligned with the ${topElement} element!
+</h2>
 
-    resultDiv.innerHTML = `
-        <img class="element-pic"
-             src="${elementImages[topElement]}"
-             onerror="this.style.display='none'">
+<h3>Your Choices:</h3>
 
-        <h2 style="color:${headingColor}">
-            You are aligned with the ${topElement} element!
-        </h2>
+${userChoices.map(c =>
+`<p><b>${c.question}</b> → ${c.choice}
+(${c.element})</p>`
+).join("")}
 
-        <hr class="divider">
+<h3>Breakdown:</h3>
 
-        <h3 style="color:${headingColor}">Your Choices:</h3>
+${Object.entries(scores).map(([el, sc]) =>
+`<p style="color:${solidColors[el]}">
+${el}: ${sc}</p>`
+).join("")}
 
-        ${userChoices.map(c =>
-            `<p><strong>${c.question}</strong> → ${c.choice} (${c.element})</p>`
-        ).join("")}
+<button id="restart" onclick="restartQuiz()">
+Restart Quiz
+</button>
+`;
 
-        <hr class="divider">
-
-        <h3 style="color:${headingColor}">Element Breakdown:</h3>
-
-        ${Object.entries(scores).map(([el, sc]) =>
-            `<p style="color:${solidColors[el]}">${el}: ${sc}</p>`
-        ).join("")}
-
-        <button id="restart" onclick="restartQuiz()">Restart Quiz</button>
-    `;
-
-    // 🎉 PARTY TIME
-    launchConfetti();
+launchConfetti();
 }
 
 function restartQuiz() {
-    currentQuestion = 0;
+currentQuestion = 0;
 
-    scores = {
-        Pyro: 0,
-        Hydro: 0,
-        Anemo: 0,
-        Electro: 0,
-        Geo: 0,
-        Cryo: 0,
-        Dendro: 0
-    };
+scores = {
+Pyro: 0, Hydro: 0, Anemo: 0,
+Electro: 0, Geo: 0, Cryo: 0, Dendro: 0
+};
 
-    userChoices = [];
-
-    document.getElementById("progress-container").style.display = "block";
-    document.getElementById("progress-text").style.display = "block";
-
-    loadQuestion();
+userChoices = [];
+loadQuestion();
 }
 
 loadQuestion();
